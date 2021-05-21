@@ -8,10 +8,11 @@ namespace spacebarz51\PivotReport;
  *
  * Author: Zaidi Mashoti
  * Created: 2021/05/21
- * Modified: 2021/05/21
+ * Modified: 2021/05/22
  */
 class PivotReport
 {
+    public $title;
     public $xColName;
     public $yColName;
     public $totalColName;
@@ -22,13 +23,16 @@ class PivotReport
 
     /**
      * PivotReport constructor.
-     * @param $xColName
-     * @param $yColName
-     * @param $totalColName
-     * @param $data
+     *
+     * @param string $title
+     * @param string $xColName
+     * @param string $yColName
+     * @param string $totalColName
+     * @param array $data
      */
-    public function __construct(string $xColName, string $yColName, string $totalColName, array $data)
+    public function __construct(string $title, string $xColName, string $yColName, string $totalColName, array $data)
     {
+        $this->title = $title;
         $this->xColName = $xColName;
         $this->yColName = $yColName;
         $this->totalColName = $totalColName;
@@ -95,37 +99,72 @@ class PivotReport
     }
 
     /**
+     * To get default CSS style
+     *
+     * @return string
+     */
+    public function getDefaultCSS()
+    {
+        return <<<EOD
+<style>
+h1 {
+    text-align:center;
+}
+.reportTable {
+    width: 100%;
+}
+.reportTable th, .reportTable td {
+    padding: 3px 5px 3px 5px;
+}
+.reportTable th.header {
+    text-align: center;
+}
+.reportTable th.data, .reportTable td.data {
+    text-align: right;
+}
+.reportTable tr:nth-child(even) {background: #e3e3e3}
+.reportTable tr:nth-child(odd) {background: #FFF}
+</style>
+EOD;
+    }
+
+    /**
      * To generate html table with pivot data
      *
      * @param $options
+     * @return string
      */
     public function generateHtml($options)
     {
-        ?>
-        <table border="1" class="<?= $options['class'] ?>">
-            <tr>
-                <th>&nbsp;</th>
-                <?php foreach ($this->colXData as $xValue) : ?>
-                    <?= '<th class="header">' . $xValue . '</th>' ?>
-                <?php endforeach; ?>
-                <th>Total</th>
-            </tr>
-            <?php foreach ($this->colYData as $yValue) : ?>
-                <?= '<tr><td>' . $yValue . '</td>' ?>
-                <?php foreach ($this->colXData as $xValue) : ?>
-                    <?= '<td class="data">' . $this->getData($xValue, $yValue) . '</td>' ?>
-                <?php endforeach; ?>
-                <?= '<td class="data">' . $this->totalY($yValue) . '</td></tr>' ?>
-            <?php endforeach; ?>
-            <tr>
-                <th>Total</th>
-                <?php foreach ($this->colXData as $xValue) : ?>
-                    <th class="data"><?= $this->totalX($xValue) ?></th>
-                <?php endforeach; ?>
-                <th class="data"><?= $this->grandTotal() ?></th>
-            </tr>
-        </table>
-        <?php
+        $html = sprintf('<h1>%s</h1>', $this->title);
+        $html .= sprintf('<table border="1" class="%s"><tr><th>&nbsp;</th>', $options['class']);
+
+        foreach ($this->colXData as $xValue) {
+            $html .= sprintf('<th class="header">%s</th>', $xValue);
+        }
+
+        $html .= '<th>Total</th></tr>';
+
+        foreach ($this->colYData as $yValue) {
+            $html .= sprintf('<tr><td>%s</td>', $yValue);
+
+            foreach ($this->colXData as $xValue) {
+                $html .= sprintf('<td class="data">%s</td>', $this->getData($xValue, $yValue));
+            }
+
+            $html .= sprintf('<td class="data">%s</td></tr>', $this->totalY($yValue));
+        }
+
+        $html .= '<tr><th class="bottomRow">Total</th>';
+
+        foreach ($this->colXData as $xValue) {
+            $html .= sprintf('<th class="data bottomRow">%s</th>', $this->totalX($xValue));
+        }
+
+        $html .= sprintf('<th class="data bottomRow">%s</th>', $this->grandTotal());
+        $html .= '</tr></table>';
+
+        return $html;
     }
 
     /**
@@ -137,9 +176,10 @@ class PivotReport
     function generateCsv($filename = null, $delimiter = ',')
     {
         if (empty($filename)) {
-            $filename = 'csv_download_' . date('YmdHis') . '.csv';
+            $filename = empty($this->title) ? 'csv_download_' . date('YmdHis') . '.csv' : $this->title . '.csv';
         }
 
+        //clean output
         ob_end_clean();
         header('Content-Type: application/csv');
         header('Content-Disposition: attachment; filename="' . $filename . '";');
@@ -160,7 +200,6 @@ class PivotReport
             $row[] = $this->totalY($yValue);
 
             fputcsv($f, $row, $delimiter);
-
         }
 
         //create summary row
@@ -170,9 +209,52 @@ class PivotReport
         foreach ($this->colXData as $xValue) {
             $summaryRow[] = $this->totalX($xValue);
         }
-        $summaryRow[] = $this->grandTotal();
 
+        $summaryRow[] = $this->grandTotal();
         fputcsv($f, $summaryRow, $delimiter);
+        exit();
+    }
+
+    /**
+     * To generate as pdf
+     *
+     * @param null $filename
+     */
+    function generatePdf($filename = null)
+    {
+        if (isset($filename) && empty($filename)) {
+            $filename = empty($this->title) ? 'pdf_download_' . date('YmdHis') . '.pdf' : $this->title . '.pdf';
+        }
+
+        //clean output
+        ob_end_clean();
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+        $tcpdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+        $tcpdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+        $tcpdf->SetTitle('Bill Collection Letter');
+
+        $tcpdf->SetMargins(10, 10, 10, 10);
+        $tcpdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+        $tcpdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
+        $tcpdf->setPrintHeader(false);
+        $tcpdf->setPrintFooter(false);
+
+        $tcpdf->SetAutoPageBreak(TRUE, 11);
+
+        $tcpdf->AddPage();
+        $tcpdf->SetFont('times', '', 10.5);
+
+        $tcpdf->writeHTML($this->generateHtml(['class' => 'reportTable']), true, false, false, false, '');
+
+        if (!empty($filename)) {
+            $tcpdf->Output($filename, 'D');
+        } else {
+            $tcpdf->Output($filename, 'I');
+        }
 
         exit();
     }
