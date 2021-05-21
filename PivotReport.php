@@ -1,4 +1,7 @@
 <?php
+
+namespace spacebarz51\PivotReport;
+
 /**
  * Class PivotReport
  * To generate html based pivot chart or downloadable CSV
