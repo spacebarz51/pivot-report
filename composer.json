@@ -1,21 +1,21 @@
 {
-  "name": "spacebarz51/pivot-report",
-  "type": "library",
-  "description": "To create simple pivot report",
-  "keywords": [
-    "pivot report",
-    "pivot",
-    "csv"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Zaidi Mashoti",
-      "email": "spacebarz51@gmail.com",
-      "role": "Developer"
-    }
-  ],
-  "require": {
-    "php": ">=7.0"
-  }
+    "name": "spacebarz51/pivot-report",
+    "type": "library",
+    "description": "To create simple pivot report",
+    "keywords": [
+        "pivot report",
+        "pivot",
+        "csv"
+    ],
+    "require": {
+        "php": "7",
+        "tecnickcom/tcpdf": "^6.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zaidi Mashoti",
+            "email": "spacebarz51@gmail.com"
+        }
+    ]
 }
