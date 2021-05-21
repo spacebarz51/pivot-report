@@ -14,5 +14,9 @@
       "email": "spacebarz51@gmail.com",
       "role": "Developer"
     }
-  ]
+  ],
+  "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.6",
+    }
 }
