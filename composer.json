@@ -1,0 +1,18 @@
+{
+  "name": "spacebarz51/pivot-report",
+  "type": "library",
+  "description": "To create simple pivot report",
+  "keywords": [
+    "pivot report",
+    "pivot",
+    "csv"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Zaidi Mashoti",
+      "email": "spacebarz51@gmail.com",
+      "role": "Developer"
+    }
+  ]
+}
